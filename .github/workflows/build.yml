@@ -2,7 +2,7 @@ name: 'sandbox: build'
 
 on:
   push:
-    branches: [main]
+    branches: [main, stable]
 
 permissions:
   contents: read
@@ -31,4 +31,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/alexeidorofeev7/cicd-sandbox:main-${{ github.run_number }}
+          tags: ghcr.io/alexeidorofeev7/cicd-sandbox:${{ github.ref_name }}-${{ github.run_number }}
