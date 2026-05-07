@@ -1,4 +1,4 @@
-name: 'sandbox: build'
+name: 'sandbox: build and deploy'
 
 on:
   push:
@@ -32,3 +32,28 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/alexeidorofeev7/cicd-sandbox:${{ github.ref_name }}-${{ github.run_number }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deploy repo
+        uses: actions/checkout@v4
+        with:
+          repository: alexeidorofeev7/cicd-sandbox-deploy
+          token: ${{ secrets.DEPLOY_REPO_PAT }}
+          ref: main
+
+      - name: Update image tag in version.yml
+        run: |
+          sed -i "s|image: ghcr.io/alexeidorofeev7/cicd-sandbox:.*|image: ghcr.io/alexeidorofeev7/cicd-sandbox:${{ github.ref_name }}-${{ github.run_number }}|" version.yml
+          echo "--- version.yml after update ---"
+          cat version.yml
+
+      - name: Commit and push
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: 'deploy: ${{ github.ref_name }}-${{ github.run_number }}'
+          add: 'version.yml'
+          push: true
